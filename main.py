@@ -50,7 +50,7 @@ def create_vectorstore(chunks):
 def get_llm():
     return ChatGroq(
         api_key=GROQ_API_KEY,
-        model="llama-3.1-8b-instant"
+        model="llama-3.3-70b-versatile"
     )
 
 # -----------------------
