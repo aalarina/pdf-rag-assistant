@@ -1,4 +1,5 @@
 import gradio as gr
+import spaces
 import os
 from dotenv import load_dotenv
 
@@ -10,6 +11,13 @@ from rag_logic import (
     get_llm, 
     ask_question
 )
+
+
+# ZeroGPU registration
+@spaces.GPU(duration=1)
+def zerogpu_probe():
+    return "GPU available"
+
 
 load_dotenv()
 
@@ -33,13 +41,31 @@ def process_pdf(file):
 
 # 2. A feature for a chatbot
 def predict(message, history):
-    if retriever_storage["instance"] is None:
-        return "Please upload the PDF document in the section above first."
-    
-    llm = get_llm()
-    # Call the search and response function
-    response = ask_question(retriever_storage["instance"], llm, message)
-    return response
+    try:
+        if retriever_storage["instance"] is None:
+            return "Please upload the PDF document in the section above first."
+
+        print("STEP 1: Retriever exists")
+
+        llm = get_llm()
+
+        print("STEP 2: LLM created")
+
+        response = ask_question(
+            retriever_storage["instance"],
+            llm,
+            message
+        )
+
+        print("STEP 3: Answer generated")
+
+        return response
+
+    except Exception as e:
+        print("ERROR TYPE:", type(e).__name__)
+        print("ERROR:", str(e))
+
+        return f"❌ Error: {type(e).__name__}: {e}"
 
 # 3. Building the Gradio Interface
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
