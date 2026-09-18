@@ -64,5 +64,5 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.ChatInterface(fn=predict)
 
 # Launching the app
-if name == "main":
+if __name__ == "__main__":
     demo.launch()
