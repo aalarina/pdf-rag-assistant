@@ -1,6 +1,11 @@
 import streamlit as st
 import os
-# Import load_documents, split_documents, create_advanced_retriever, get_llm, ask_question
+from main import(
+load_documents, 
+split_documents, 
+create_advanced_retriever, 
+get_llm, ask_question
+)
 
 st.set_page_config(page_title="Advanced PDF RAG", layout="centered")
 st.title("📚 Complex PDF RAG Assistant")
