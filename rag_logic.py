@@ -29,7 +29,7 @@ def load_documents(file_path):
 # 3. SPLIT INTO CHUNKS
 # -----------------------
 def split_documents(documents):
-    # Збільшуємо chunk_size до 800, щоб шматки мали більше закінченого змісту
+    # Let's increase `chunk_size` to 800 so that the chunks contain more complete content
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=800,
         chunk_overlap=150
@@ -40,29 +40,29 @@ def split_documents(documents):
 # 4. CREATE ADVANCED RETRIEVER (Hybrid + Rerank)
 # -----------------------
 def create_advanced_retriever(chunks):
-    # Використовуємо значно точнішу модель ембеддінгів (bge-small-en-v1.5 або bge-m3 для мультимовного тексту)
+    # We use a significantly more accurate embedding model (bge-small-en-v1.5 or bge-m3 for multilingual text)
     embeddings = HuggingFaceEmbeddings(
         model_name="BAAI/bge-small-en-v1.5", 
         model_kwargs={'device': 'cpu'}
     )
 
-    # 1. Створюємо векторну базу даних
+    # 1. Creating a Vector Database
     vectorstore = Chroma.from_documents(documents=chunks, embedding=embeddings)
     # Збільшуємо k до 10, щоб витягнути більше потенційних кандидатів для Reranker
     vector_retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
 
-    # 2. Створюємо ключовий пошук (BM25) для точних збігів слів / кодів
+    # 2. Creating a keyword search (BM25) for exact matches of words/codes
     bm25_retriever = BM25Retriever.from_documents(chunks)
     bm25_retriever.k = 10
 
-    # 3. Об'єднуємо їх у Гібридний пошук (50% ваги вектору, 50% тексту)
+    # 3. We combine them into a hybrid search (50% vector weight, 50% text)
     ensemble_retriever = EnsembleRetriever(
         retrievers=[vector_retriever, bm25_retriever],
         weights=[0.5, 0.5]
     )
 
-    # 4. Додаємо Reranker (FlashRank працює миттєво на CPU без API ключів)
-    # Він відсіє сміття і залишить топ-3 найбільш релевантних шматків
+    # 4. Let's add Reranker (FlashRank runs instantly on the CPU without API keys)
+    # It will filter out the junk and leave the top 3 most relevant pieces
     compressor = FlashrankRerank(top_n=3)
     
     compression_retriever = ContextualCompressionRetriever(
@@ -78,14 +78,14 @@ def create_advanced_retriever(chunks):
 def get_llm():
     return ChatGroq(
         api_key=GROQ_API_KEY,
-        model="llama-3.3-70b-specdec" # Оновлено до актуальної швидкої версії Llama 3.3
+        model="llama-3.3-70b-specdec" # Updated to the latest stable version of Llama 3.3
     )
 
 # -----------------------
 # 6. QUERY PIPELINE
 # -----------------------
 def ask_question(retriever, llm, query):
-    # Тепер ми викликаємо інтелектуальний компресійний ретрівер замість простого пошуку
+    # Now we're calling an intelligent compression retriever instead of a simple search
     docs = retriever.invoke(query)
 
     context = "\n\n".join(
