@@ -348,9 +348,3 @@ This project demonstrates practical experience with:
 * Hallucination mitigation
 * Gradio application development
 * Hugging Face Spaces deployment
-
----
-
-## License
-
-This project is intended for educational and portfolio purposes.
