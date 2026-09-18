@@ -129,4 +129,16 @@ if name == "main":
     
     llm = get_llm()
     print("System is ready!")
+    
+    while True:
+        query = input("\nAsk a question (or type 'exit'): ")
+
+        if query.lower() == "exit":
+            break
+
+        if not query.strip():
+            continue
+
+        answer = ask_question(retriever, llm, query)
+        print("\nAnswer:\n", answer)
 
