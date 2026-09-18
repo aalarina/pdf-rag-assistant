@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 import spaces
 
@@ -12,12 +12,15 @@ from langchain_classic.retrievers import EnsembleRetriever
 from langchain_community.document_compressors import FlashrankRerank
 from langchain_classic.retrievers import ContextualCompressionRetriever
 
+
+from flashrank import Ranker 
+
 from langchain_groq import ChatGroq
 
 # -----------------------
 # 1. LOAD ENV
 # -----------------------
-load_dotenv()
+# load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # -----------------------
@@ -46,8 +49,8 @@ def create_advanced_retriever(chunks):
     # We use a significantly more accurate embedding model (bge-small-en-v1.5 or bge-m3 for multilingual text)
     embeddings = HuggingFaceEmbeddings(
         model_name="BAAI/bge-small-en-v1.5", 
-        # model_kwargs={'device': 'cpu'}
-        model_kwargs={'device':'gpu'}
+        model_kwargs={'device': 'cpu'}
+        # model_kwargs={'device':'cuda'}
     )
 
     # 1. Creating a Vector Database
@@ -66,8 +69,10 @@ def create_advanced_retriever(chunks):
     )
 
     # 4. Add Reranker
+    raw_ranker = Ranker(model_name="ms-marco-MiniLM-L-12-v2", cache_dir="/tmp")
+    
     # It will filter out the junk and leave the top 3 most relevant pieces
-    compressor = FlashrankRerank(top_n=3)
+    compressor = FlashrankRerank(client=raw_ranker, top_n=3)
     
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, 
@@ -82,7 +87,7 @@ def create_advanced_retriever(chunks):
 def get_llm():
     return ChatGroq(
         api_key=GROQ_API_KEY,
-        model="llama-3.3-70b-specdec" # Updated to the latest stable version of Llama 3.3
+        model="llama-3.3-70b-specdec" 
     )
 
 # -----------------------
@@ -98,12 +103,17 @@ def ask_question(retriever, llm, query):
 
     prompt = f"""
 You are a strict document assistant.
+
 Answer ONLY using the context below. 
+
 If the answer is not explicitly present in the context, say exactly:
 "I could not find the answer in the document."
+
 Do not make up facts, do not use outside knowledge.
+
 Context:
 {context}
+
 Question:
 {query}
 """
@@ -140,3 +150,4 @@ if __name__ == "__main__":
 
         answer = ask_question(retriever, llm, query)
         print("\nAnswer:\n", answer)
+
