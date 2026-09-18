@@ -1,4 +1,4 @@
-streamlit
+spaces
 langchain
 langchain-community
 langchain-text-splitters
