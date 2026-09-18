@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from main import(
+from rag_logic import(
 load_documents, 
 split_documents, 
 create_advanced_retriever, 
