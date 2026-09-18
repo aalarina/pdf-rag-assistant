@@ -44,7 +44,6 @@ def split_documents(documents):
 # -----------------------
 # 4. CREATE ADVANCED RETRIEVER (Hybrid + Rerank)
 # -----------------------
-@spaces.GPU
 def create_advanced_retriever(chunks):
     # We use a significantly more accurate embedding model (bge-small-en-v1.5 or bge-m3 for multilingual text)
     embeddings = HuggingFaceEmbeddings(
@@ -87,7 +86,8 @@ def create_advanced_retriever(chunks):
 def get_llm():
     return ChatGroq(
         api_key=GROQ_API_KEY,
-        model="llama-3.3-70b-specdec" 
+        #model="llama-3.3-70b-versatile"
+        model = "openai/gpt-oss-120b"
     )
 
 # -----------------------
@@ -103,17 +103,12 @@ def ask_question(retriever, llm, query):
 
     prompt = f"""
 You are a strict document assistant.
-
 Answer ONLY using the context below. 
-
 If the answer is not explicitly present in the context, say exactly:
 "I could not find the answer in the document."
-
 Do not make up facts, do not use outside knowledge.
-
 Context:
 {context}
-
 Question:
 {query}
 """
@@ -150,4 +145,3 @@ if __name__ == "__main__":
 
         answer = ask_question(retriever, llm, query)
         print("\nAnswer:\n", answer)
-
