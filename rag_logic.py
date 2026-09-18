@@ -7,9 +7,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.retrievers import BM25Retriever
-from langchain.retrievers import EnsembleRetriever
-from langchain.retrievers.document_compressors import FlashrankRerank
-from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+
+from langchain_classic.retrievers import EnsembleRetriever
+from langchain_community.document_compressors import FlashrankRerank
+from langchain_classic.retrievers import ContextualCompressionRetriever
 
 from langchain_groq import ChatGroq
 
@@ -97,17 +98,12 @@ def ask_question(retriever, llm, query):
 
     prompt = f"""
 You are a strict document assistant.
-
 Answer ONLY using the context below. 
-
 If the answer is not explicitly present in the context, say exactly:
 "I could not find the answer in the document."
-
 Do not make up facts, do not use outside knowledge.
-
 Context:
 {context}
-
 Question:
 {query}
 """
@@ -118,7 +114,7 @@ Question:
 # -----------------------
 # 7. MAIN FLOW
 # -----------------------
-if name == "main":
+if __name__ == "__main__":
     pdf_path = "sample.pdf"
 
     print("Loading documents...")
@@ -144,4 +140,3 @@ if name == "main":
 
         answer = ask_question(retriever, llm, query)
         print("\nAnswer:\n", answer)
-
