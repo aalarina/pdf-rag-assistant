@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import spaces
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -39,29 +40,31 @@ def split_documents(documents):
 # -----------------------
 # 4. CREATE ADVANCED RETRIEVER (Hybrid + Rerank)
 # -----------------------
+@spaces.GPU
 def create_advanced_retriever(chunks):
     # We use a significantly more accurate embedding model (bge-small-en-v1.5 or bge-m3 for multilingual text)
     embeddings = HuggingFaceEmbeddings(
         model_name="BAAI/bge-small-en-v1.5", 
-        model_kwargs={'device': 'cpu'}
+        # model_kwargs={'device': 'cpu'}
+        model_kwargs={'device':'gpu'}
     )
 
     # 1. Creating a Vector Database
     vectorstore = Chroma.from_documents(documents=chunks, embedding=embeddings)
-    # Збільшуємо k до 10, щоб витягнути більше потенційних кандидатів для Reranker
+    # Increase k to 10 to identify more potential candidates for the Reranker
     vector_retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
 
     # 2. Creating a keyword search (BM25) for exact matches of words/codes
     bm25_retriever = BM25Retriever.from_documents(chunks)
     bm25_retriever.k = 10
 
-    # 3. We combine them into a hybrid search (50% vector weight, 50% text)
+    # 3. Combine them into a hybrid search (50% vector weight, 50% text)
     ensemble_retriever = EnsembleRetriever(
         retrievers=[vector_retriever, bm25_retriever],
         weights=[0.5, 0.5]
     )
 
-    # 4. Let's add Reranker (FlashRank runs instantly on the CPU without API keys)
+    # 4. Add Reranker
     # It will filter out the junk and leave the top 3 most relevant pieces
     compressor = FlashrankRerank(top_n=3)
     
